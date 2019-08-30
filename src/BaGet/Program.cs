@@ -1,4 +1,5 @@
 using System;
+using System.Net;
 using BaGet.Core.Mirror;
 using BaGet.Extensions;
 using McMaster.Extensions.CommandLineUtils;
@@ -48,8 +49,13 @@ namespace BaGet
         public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
             WebHost.CreateDefaultBuilder(args)
                 .UseStartup<Startup>()
-                .UseKestrel(options =>
+                .UseKestrel((context, options) =>
                 {
+                    var httpPort = context.Configuration.GetValue<int>("ListeningPorts:Http");
+                    var httpsPort = context.Configuration.GetValue<int>("ListeningPorts:Https");
+
+                    options.Listen(IPAddress.Any, httpPort);
+
                     // Remove the upload limit from Kestrel. If needed, an upload limit can
                     // be enforced by a reverse proxy server, like IIS.
                     options.Limits.MaxRequestBodySize = null;
